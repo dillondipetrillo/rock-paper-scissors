@@ -1,8 +1,18 @@
 // Game will be played against the computer
+const choiceBtns = document.querySelectorAll(".choice-btn");
+const btnsDiv = document.querySelector(".btns");
+const results = document.querySelector(".results");
+let computerWins = document.getElementById("computer-score");
+let playerWins = document.getElementById("user-score");
+const endOfGame = document.querySelector(".end-of-game");
+
+computerWins.textContent = 0;
+playerWins.textContent = 0;
+
+let computerScore = 0;
+let playerScore = 0;
 
 const choices = ["Rock", "Paper", "Scissors"];
-let computerWins = 0;
-let playerWins = 0;
 
 // Get the computers choice with the func getComputerChoice
 const getComputerChoice = () => {
@@ -11,52 +21,82 @@ const getComputerChoice = () => {
   return choices[randNum];
 };
 
-const getPlayerChoice = () => {
-  let caseSensitivePlayer;
-  do {
-    let playerPrompt = prompt("Rock, Paper, or Scissors?", "");
-
-    caseSensitivePlayer =
-      playerPrompt[0].toUpperCase() + playerPrompt.slice(1).toLowerCase();
-  } while (!choices.includes(caseSensitivePlayer));
-
-  return caseSensitivePlayer;
-};
-
 const playRound = (playerSelection, computerSelection) => {
+  let gameResult = document.createElement("p");
+
   if (computerSelection === playerSelection) {
     // Tie
-    return `It's a Tie! Computer: ${computerSelection} - Player: ${playerSelection}`;
+    gameResult.textContent = `It's a Tie! Computer: ${computerSelection} - Player: ${playerSelection}`;
   } else if (
     (computerSelection === "Rock" && playerSelection === "Scissors") ||
     (computerSelection === "Paper" && playerSelection === "Rock") ||
     (computerSelection === "Scissors" && playerSelection === "Paper")
   ) {
     // Computer wins
-    computerWins++;
-    return `You Lose! ${computerSelection} beats ${playerSelection}`;
+    computerScore++;
+    computerWins.textContent = computerScore;
+    gameResult.textContent = `You Lose! ${computerSelection} beats ${playerSelection}`;
   } else {
     // Player wins
-    playerWins++;
-    return `You Win! ${playerSelection} beats ${computerSelection}`;
-  }
-};
-
-const game = () => {
-  // play five rounds
-  for (let i = 0; i < 5; i++) {
-    let computerSelection = getComputerChoice();
-    // use prompt to get the user choice
-    let playerSelection = getPlayerChoice();
-
-    // console.log the results of each round
-    console.log(playRound(playerSelection, computerSelection));
+    playerScore++;
+    playerWins.textContent = playerScore;
+    gameResult.textContent = `You Win! ${playerSelection} beats ${computerSelection}`;
   }
 
-  // console.log winner at the end
-  let winner = computerWins > playerWins ? "Computer" : "Player";
-  if (computerWins && playerWins) console.log(`${winner} Wins!`);
-  console.log(`Player: ${playerWins} - Computer: ${computerWins}`);
+  results.appendChild(gameResult);
 };
 
-game();
+const disableBtns = () => {
+  choiceBtns.forEach((btn) => (btn.disabled = true));
+};
+
+const checkWinner = () => {
+  let gameOver = false;
+
+  if (computerScore < 5 && playerScore < 5) return gameOver;
+
+  let winner = document.createElement("p");
+  gameOver = true;
+
+  if (computerScore === 5) {
+    winner.textContent = "Computer Wins!";
+  }
+  if (playerScore === 5) {
+    winner.textContent = "Player Wins!";
+  }
+
+  endOfGame.appendChild(winner);
+
+  disableBtns();
+
+  return gameOver;
+};
+
+const resetGame = () => {
+  computerWins.textContent = 0;
+  playerWins.textContent = 0;
+
+  computerScore = 0;
+  playerScore = 0;
+
+  results.replaceChildren();
+  endOfGame.replaceChildren();
+  btnsDiv.removeChild(btnsDiv.lastElementChild);
+  choiceBtns.forEach((btn) => (btn.disabled = false));
+};
+
+const showResetBtn = () => {
+  const resetBtn = document.createElement("button");
+  resetBtn.textContent = "Reset Game";
+
+  resetBtn.addEventListener("click", resetGame);
+  btnsDiv.appendChild(resetBtn);
+};
+
+choiceBtns.forEach((btn) =>
+  btn.addEventListener("click", (e) => {
+    playRound(e.target.textContent, getComputerChoice());
+
+    checkWinner() ? showResetBtn() : null;
+  })
+);
